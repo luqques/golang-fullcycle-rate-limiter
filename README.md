@@ -23,8 +23,6 @@ docker compose run --rm test
 
 ## Configuração
 
-Copie `.env.example` para `.env` e ajuste os valores. O Compose lê automaticamente esse arquivo.
-
 | Variável | Padrão | Descrição |
 | --- | --- | --- |
 | `RATE_LIMIT_IP_REQUESTS_PER_SECOND` | `10` | Limite aplicado quando não há `API_KEY`. |
