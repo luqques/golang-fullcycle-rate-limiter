@@ -1,0 +1,35 @@
+services:
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      REDIS_ADDR: redis:6379
+      RATE_LIMIT_IP_REQUESTS_PER_SECOND: ${RATE_LIMIT_IP_REQUESTS_PER_SECOND:-10}
+      RATE_LIMIT_TOKEN_REQUESTS_PER_SECOND: ${RATE_LIMIT_TOKEN_REQUESTS_PER_SECOND:-100}
+      RATE_LIMIT_TOKEN_OVERRIDES: ${RATE_LIMIT_TOKEN_OVERRIDES:-premium-token:200}
+      RATE_LIMIT_BLOCK_DURATION: ${RATE_LIMIT_BLOCK_DURATION:-5m}
+      RATE_LIMIT_WINDOW: ${RATE_LIMIT_WINDOW:-1s}
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  test:
+    image: golang:1.22-alpine
+    working_dir: /app
+    volumes:
+      - .:/app:ro
+    environment:
+      REDIS_ADDR: redis:6379
+    command: ["sh", "-c", "go mod download && go test ./..."]
+    depends_on:
+      redis:
+        condition: service_healthy
